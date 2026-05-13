@@ -1,33 +1,51 @@
 interface EventCardProps {
   event: {
     title: string
-    date: string
+    date?: string
+    startDate?: string
     time?: string
     venue?: string
+    location?: string
     source: string
     price?: string
     url: string
     match_reason?: string
+    whyItMatches?: string
   }
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const formatDateTime = (date: string, time?: string) => {
-    const d = new Date(date)
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const formatDateTime = (dateString: string) => {
+    try {
+      const d = new Date(dateString)
+      if (isNaN(d.getTime())) {
+        return 'Date TBA'
+      }
 
-    const dayName = days[d.getDay()]
-    const month = months[d.getMonth()]
-    const day = d.getDate()
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-    let timeStr = ''
-    if (time) {
-      timeStr = `, ${time}`
+      const dayName = days[d.getDay()]
+      const month = months[d.getMonth()]
+      const day = d.getDate()
+
+      // Format time
+      const hours = d.getHours()
+      const minutes = d.getMinutes()
+      const ampm = hours >= 12 ? 'pm' : 'am'
+      const displayHours = hours % 12 || 12
+      const timeStr = minutes > 0
+        ? `, ${displayHours}:${minutes.toString().padStart(2, '0')}${ampm}`
+        : `, ${displayHours}${ampm}`
+
+      return `${dayName} ${month} ${day}${timeStr}`
+    } catch (e) {
+      return 'Date TBA'
     }
-
-    return `${dayName} ${month} ${day}${timeStr}`
   }
+
+  const eventDate = event.startDate || event.date
+  const eventLocation = event.location || event.venue
 
   return (
     <div className="bg-card border border-border rounded-lg p-6
@@ -44,11 +62,11 @@ export default function EventCard({ event }: EventCardProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium">{formatDateTime(event.date, event.time)}</span>
-          {event.venue && (
+          {eventDate && <span className="font-medium">{formatDateTime(eventDate)}</span>}
+          {eventLocation && (
             <>
-              <span className="hidden sm:inline">•</span>
-              <span>{event.venue}</span>
+              {eventDate && <span className="hidden sm:inline">•</span>}
+              <span>{eventLocation}</span>
             </>
           )}
           {event.price && (
@@ -59,11 +77,11 @@ export default function EventCard({ event }: EventCardProps) {
           )}
         </div>
 
-        {event.match_reason && (
+        {(event.match_reason || event.whyItMatches) && (
           <div className="bg-primary/10 border border-primary/20
                         rounded-md p-3 mt-1">
             <p className="text-sm text-foreground/90">
-              <span className="font-medium">Why it matches:</span> {event.match_reason}
+              <span className="font-medium">Why it matches:</span> {event.match_reason || event.whyItMatches}
             </p>
           </div>
         )}

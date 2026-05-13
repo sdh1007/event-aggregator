@@ -5,7 +5,7 @@ import { Event } from '@/lib/types/event';
 // Import all source fetchers
 import { fetchFuncheap } from '@/lib/sources/funcheap';
 import { fetchDoTheBay } from '@/lib/sources/dothebay';
-import { fetch19hz } from '@/lib/sources/19hz';
+import { fetch19hz } from '@/lib/sources/nineteenhz';
 import { fetchLuma } from '@/lib/sources/luma';
 
 export async function GET(request: NextRequest) {
@@ -47,7 +47,12 @@ export async function GET(request: NextRequest) {
     if (result.status === 'fulfilled') {
       const events = result.value;
       bySource[sourceName] = events.length;
-      allEvents.push(...events);
+      // Tag each event with its source
+      const taggedEvents = events.map((event) => ({
+        ...event,
+        source: sourceName,
+      }));
+      allEvents.push(...taggedEvents);
     } else {
       console.error(`Failed to fetch from ${sourceName}:`, result.reason);
       bySource[sourceName] = 0;

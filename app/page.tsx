@@ -31,8 +31,15 @@ export default function Home() {
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | null>(null)
   const [sources, setSources] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const prefs = localStorage.getItem('sf-events-prefs')
     if (!prefs) {
       router.push('/onboarding')
@@ -40,7 +47,7 @@ export default function Home() {
     }
 
     loadEvents(prefs)
-  }, [router])
+  }, [router, mounted])
 
   const loadEvents = async (preferences: string) => {
     setLoading(true)
@@ -63,7 +70,13 @@ export default function Home() {
         body: JSON.stringify({ events: rawEvents, preferences }),
       })
 
-      const matchedEvents = await matchRes.json()
+      if (!matchRes.ok) {
+        console.error('Match API error:', matchRes.status, matchRes.statusText)
+        throw new Error(`Match API failed: ${matchRes.status}`)
+      }
+
+      const matchData = await matchRes.json()
+      const matchedEvents = matchData.matches || matchData
 
       setEvents(matchedEvents)
       setFilteredEvents(matchedEvents)
@@ -92,7 +105,12 @@ export default function Home() {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
       filtered = filtered.filter((event) => {
-        const eventDate = new Date(event.date)
+        const dateStr = (event as any).startDate || (event as any).date
+        if (!dateStr) return false
+
+        const eventDate = new Date(dateStr)
+        if (isNaN(eventDate.getTime())) return false
+
         const eventDay = new Date(
           eventDate.getFullYear(),
           eventDate.getMonth(),
@@ -144,6 +162,11 @@ export default function Home() {
       minute: '2-digit',
       hour12: true,
     })
+  }
+
+  // Don't render anything until mounted (prevents localStorage access on server)
+  if (!mounted) {
+    return null
   }
 
   return (
