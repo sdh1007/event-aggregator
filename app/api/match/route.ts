@@ -50,6 +50,8 @@ Return a JSON array of objects with this structure: [{"id": "...", "score": 0-10
 Output ONLY the JSON array, no other text.`;
 
   try {
+    console.log('[Match] Scoring batch of', events.length, 'events');
+
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 4096,
@@ -68,6 +70,8 @@ Output ONLY the JSON array, no other text.`;
     }
 
     const text = content.text.trim();
+    console.log('[Match] AI response:', text.slice(0, 200) + '...');
+
     const parsed = JSON.parse(text);
 
     if (!Array.isArray(parsed)) {
@@ -80,7 +84,8 @@ Output ONLY the JSON array, no other text.`;
       why: typeof item.why === 'string' ? item.why : "couldn't analyze",
     }));
   } catch (error) {
-    console.error('Error scoring batch:', error);
+    console.error('[Match] Error scoring batch:', error);
+    console.error('[Match] Error details:', error instanceof Error ? error.message : error);
     return events.map((e) => ({
       id: e.id,
       score: 50,

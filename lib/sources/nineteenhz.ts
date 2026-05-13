@@ -9,6 +9,9 @@ export async function fetch19hz(): Promise<Event[]> {
 
     const response = await fetch('https://19hz.info/eventlisting_BayArea.php', {
       signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; SFEventBot/1.0)',
+      },
     });
     clearTimeout(timeout);
 

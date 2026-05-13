@@ -7,7 +7,11 @@ export async function fetchFuncheap(): Promise<Event[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    const parser = new Parser();
+    const parser = new Parser({
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; SFEventBot/1.0)',
+      },
+    });
     const feed = await parser.parseURL('https://sf.funcheap.com/feed/');
     clearTimeout(timeout);
 
