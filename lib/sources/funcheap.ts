@@ -12,7 +12,7 @@ export async function fetchFuncheap(): Promise<Event[]> {
         'User-Agent': 'Mozilla/5.0 (compatible; SFEventBot/1.0)',
       },
     });
-    const feed = await parser.parseURL('https://sf.funcheap.com/feed/');
+    const feed = await parser.parseURL('https://feeds.feedburner.com/funcheapsf_recent_added_events/');
     clearTimeout(timeout);
 
     const now = new Date();

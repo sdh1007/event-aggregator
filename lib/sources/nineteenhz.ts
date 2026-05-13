@@ -29,15 +29,22 @@ export async function fetch19hz(): Promise<Event[]> {
 
     $('table tr').each((_, row) => {
       const cells = $(row).find('td');
-      if (cells.length < 5) return;
+      if (cells.length < 7) return;
 
       const dateText = $(cells[0]).text().trim();
-      const eventText = $(cells[1]).text().trim();
-      const venueText = $(cells[2]).text().trim();
+      const eventCell = $(cells[1]);
+      const eventText = eventCell.text().trim();
+      const ticketsLink = eventCell.find('a').attr('href');
+      const genreText = $(cells[2]).text().trim();
       const priceText = $(cells[3]).text().trim();
-      const ticketsLink = $(cells[4]).find('a').attr('href');
 
       if (!eventText || !ticketsLink) return;
+
+      // Extract event name and venue from eventText
+      // Format is usually: "Event Name @ Venue (City)"
+      const atIndex = eventText.lastIndexOf(' @ ');
+      const eventName = atIndex > 0 ? eventText.substring(0, atIndex).trim() : eventText;
+      const venueText = atIndex > 0 ? eventText.substring(atIndex + 3).trim() : '';
 
       const startDate = new Date(dateText);
       if (isNaN(startDate.getTime())) return;
@@ -48,18 +55,18 @@ export async function fetch19hz(): Promise<Event[]> {
         .digest('hex')
         .slice(0, 12);
 
-      const description = `${eventText} at ${venueText}`.slice(0, 500);
+      const description = `${genreText}. ${priceText}`.slice(0, 500);
 
       const tags = ['music', 'nightlife'];
-      const eventLower = eventText.toLowerCase();
-      if (eventLower.includes('techno')) tags.push('techno');
-      if (eventLower.includes('house')) tags.push('house');
-      if (eventLower.includes('trance')) tags.push('trance');
-      if (eventLower.includes('dnb') || eventLower.includes('drum')) tags.push('dnb');
+      const genreLower = `${genreText} ${eventName}`.toLowerCase();
+      if (genreLower.includes('techno')) tags.push('techno');
+      if (genreLower.includes('house')) tags.push('house');
+      if (genreLower.includes('trance')) tags.push('trance');
+      if (genreLower.includes('dnb') || genreLower.includes('drum')) tags.push('dnb');
 
       events.push({
         id,
-        title: eventText,
+        title: eventName,
         description,
         startDate: startDate.toISOString(),
         location: venueText,

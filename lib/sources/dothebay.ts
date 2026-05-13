@@ -10,6 +10,7 @@ export async function fetchDoTheBay(): Promise<Event[]> {
     const parser = new Parser({
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; SFEventBot/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
       },
     });
     const feed = await parser.parseURL('https://dothebay.com/events.rss');
